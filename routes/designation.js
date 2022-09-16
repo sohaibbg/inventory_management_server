@@ -40,11 +40,13 @@ router.post('/permission/insert', async function (req, res, next) {
                 message: "Please provide the token",
             });
         }
+        const theToken = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
         const result = await db.query(
             `call insert_designation_permission(?,?,?);`,
             [decoded.id, req.body.designation_id, req.body.permission]
         );
-        res.json(result[0][0]);
+        res.json(result[0]);
     } catch (err) {
         console.error(err.message);
         next(err);
@@ -88,10 +90,10 @@ router.delete('/delete', async function (req, res, next) {
         }
         const theToken = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        
+
         const result = await db.query(
             `call delete_designation(?,?);`,
-            [decoded.id,req.body.designation_id]
+            [decoded.id, req.body.designation_id]
         );
         res.json(result[0][0]);
     } catch (err) {

@@ -5,7 +5,6 @@ const router = express.Router();
 
 /// POST insert asset
 router.post('/insert', async function (req, res, next) {
-    console.log("E");
     try {
         if (
             !req.headers.authorization ||
@@ -18,9 +17,9 @@ router.post('/insert', async function (req, res, next) {
         }
         const theToken = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        
+
         const result = await db.query(
-            `call insert_asset(?,?,?,?,?,?,?,?,?,?);`,
+            `call insert_asset(?,?,?,?,?,?,?,?,?);`,
             [decoded.id, req.body.category_id,
             req.body.parent_asset_id,
             req.body.supplier_id,
@@ -28,37 +27,16 @@ router.post('/insert', async function (req, res, next) {
             req.body.warranty_till,
             req.body.date_scrapped,
             req.body.scrapped_by,
-            req.body.created_by,
             req.body.note,
             ]
         );
-        res.json(result[0][0]);
-    } catch (err) {
-        console.error(err.message);
-        next(err);
-    }
-});
-
-/// POST insert asset
-router.post('/insert_attr', async function (req, res, next) {
-    try {
-        if (
-            !req.headers.authorization ||
-            !req.headers.authorization.startsWith('Bearer') ||
-            !req.headers.authorization.split(' ')[1]
-        ) {
-            return res.status(422).json({
-                message: "Please provide the token",
-            });
+        const asset_id = result[0][0].asset_id;
+        for (attrId of req.body.attrIds) {
+            await db.query(
+                `call insert_asset_attr(?,?,?);`,
+                [decoded.id, attrId, asset_id]
+            );
         }
-        const theToken = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        
-        const result = await db.query(
-            `call insert_asset_attr(?,?,?);`,
-            [decoded.id, req.body.attribute_id, req.body.asset_id
-            ]
-        );
         res.json(result[0][0]);
     } catch (err) {
         console.error(err.message);
@@ -80,7 +58,7 @@ router.post('/transfer', async function (req, res, next) {
         }
         const theToken = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        
+
         const result = await db.query(
             `call insert_transfer(?,?,?);`,
             [decoded.id, req.body.asset_id, req.body.to_emp
@@ -93,33 +71,33 @@ router.post('/transfer', async function (req, res, next) {
     }
 });
 
-/// GET asset by category
-router.get(`/:category_id`, async function (req, res, next) {
-    try {
-        if (
-            !req.headers.authorization ||
-            !req.headers.authorization.startsWith('Bearer') ||
-            !req.headers.authorization.split(' ')[1]
-        ) {
-            return res.status(422).json({
-                message: "Please provide the token",
-            });
-        }
-        const theToken = req.headers.authorization.split(' ')[1];
-        const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        const result = await db.query(
-            `call get_assets(?,?);`,
-            [decoded.id, req.params.category_id]
-        );
-        res.json(result);
-    } catch (err) {
-        console.error(err.message);
-        next(err);
-    }
-});
+// /// GET asset by category
+// router.get(`/:category_id`, async function (req, res, next) {
+//     try {
+//         if (
+//             !req.headers.authorization ||
+//             !req.headers.authorization.startsWith('Bearer') ||
+//             !req.headers.authorization.split(' ')[1]
+//         ) {
+//             return res.status(422).json({
+//                 message: "Please provide the token",
+//             });
+//         }
+//         const theToken = req.headers.authorization.split(' ')[1];
+//         const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
+//         const result = await db.query(
+//             `call get_assets(?,?);`,
+//             [decoded.id, req.params.category_id]
+//         );
+//         res.json(result);
+//     } catch (err) {
+//         console.error(err.message);
+//         next(err);
+//     }
+// });
 
 /// DELETE asset
-router.delete('/delete', async function (req, res, next) {
+router.delete('/scrap', async function (req, res, next) {
     try {
         if (
             !req.headers.authorization ||
@@ -132,12 +110,12 @@ router.delete('/delete', async function (req, res, next) {
         }
         const theToken = req.headers.authorization.split(' ')[1];
         const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
-        
+
         const result = await db.query(
             `call scrap_asset(?,?);`,
-            [req.body.asset_id,decoded.id]
+            [req.body.assetId, decoded.id]
         );
-        res.json(result[0][0]);
+        res.json(result[0]);
     } catch (err) {
         console.error(err.message);
         next(err);
@@ -194,6 +172,31 @@ router.put('/set_parent', async function (req, res, next) {
     }
 });
 
+
+/// GET asset by asset id
+router.get(`/:asset_id`, async function (req, res, next) {
+    try {
+        if (
+            !req.headers.authorization ||
+            !req.headers.authorization.startsWith('Bearer') ||
+            !req.headers.authorization.split(' ')[1]
+        ) {
+            return res.status(422).json({
+                message: "Please provide the token",
+            });
+        }
+        const theToken = req.headers.authorization.split(' ')[1];
+        const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
+        const result = await db.query(
+            `call get_assets(?,?);`,
+            [decoded.id, req.params.asset_id]
+        );
+        res.json(result);
+    } catch (err) {
+        console.error(err.message);
+        next(err);
+    }
+});
 
 
 module.exports = router;

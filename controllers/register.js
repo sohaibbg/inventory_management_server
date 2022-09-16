@@ -1,6 +1,6 @@
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
-const conn = require('../db');
+const db = require('../db');
 
 exports.register = async (req, res, next) => {
     const errors = validationResult(req);
@@ -9,7 +9,7 @@ exports.register = async (req, res, next) => {
         return res.status(422).json({ errors: errors.array() });
     }
     try {
-        const row = await conn.query(
+        const row = await db.query(
             "SELECT `email` FROM `user` WHERE `email`=?",
             [req.body.email]
         );
@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
             });
         }
         const passhash = await bcrypt.hash(req.body.password, 12);
-        const rows = await conn.query(
+        const rows = await db.query(
             `INSERT INTO user
             (user_name,email,passhash,designation_id)
             VALUES(?,?,?,?)`, [
@@ -28,15 +28,10 @@ exports.register = async (req, res, next) => {
             req.body.email,
             passhash,
             req.body.designation_id
-        ], function (err, results) {
-        });
-
-        if (rows.affectedRows === 1) {
-            return res.status(201).json({
-                message: "The user has been successfully inserted.",
-            });
-        }
-
+        ], function (err, results) { });
+        const result = await db.query(
+            `select last_insert_id() as user_id`);
+        res.json(result[0]);
     } catch (err) {
         next(err);
     }

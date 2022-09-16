@@ -1,3 +1,4 @@
+const db = require('../db');
 const router = require('express').Router();
 const { body } = require('express-validator');
 const { register } = require('../controllers/register');
@@ -81,6 +82,30 @@ router.put('/set_details', async function (req, res, next) {
           ]
       );
       res.json(result[0][0]);
+  } catch (err) {
+      console.error(err.message);
+      next(err);
+  }
+});
+/// GET sub department users
+router.get('/get_all', async function (req, res, next) {
+  try {
+      if (
+          !req.headers.authorization ||
+          !req.headers.authorization.startsWith('Bearer') ||
+          !req.headers.authorization.split(' ')[1]
+      ) {
+          return res.status(422).json({
+              message: "Please provide the token",
+          });
+      }
+      const theToken = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(theToken, "0F#ku%0Rz9$.s%06>\"a-MdhL]S+>v{");
+      const result = await db.query(
+          `call get_dep_users(?);`,
+          [decoded.id]
+      );
+      res.json(result);
   } catch (err) {
       console.error(err.message);
       next(err);
