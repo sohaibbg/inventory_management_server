@@ -30,7 +30,7 @@ exports.register = async (req, res, next) => {
             req.body.designation_id
         ], function (err, results) { });
         const result = await db.query(
-            `select last_insert_id() as user_id`);
+            `select user_id from user where email=?`,[req.body.email]);
         res.json(result[0]);
     } catch (err) {
         next(err);
