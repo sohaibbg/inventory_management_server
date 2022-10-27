@@ -76,7 +76,7 @@ router.delete('/delete', async function (req, res, next) {
             `call delete_employee(?,?);`,
             [decoded.id, req.body.employee_id]
         );
-        res.json(result[0][0]);
+        res.json(result);
     } catch (err) {
         console.error(err.message);
         next(err);

@@ -43,7 +43,7 @@ router.post('/insert', async function (req, res, next) {
             `call insert_department(?,?,?);`,
             [decoded.id, req.body.dep_name, req.body.parent_department_id]
         );
-        res.json(result[0][0]);
+        res.json(result);
     } catch (err) {
         console.error(err.message);
         next(err);
@@ -67,7 +67,7 @@ router.put('/set_name', async function (req, res, next) {
             `call set_dep_name(?,?,?);`,
             [decoded.id, req.body.department_id, req.body.dep_name,]
         );
-        res.json(result[0]);
+        res.json(result);
     } catch (err) {
         console.error(err.message);
         next(err);
